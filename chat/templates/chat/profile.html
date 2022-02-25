@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <link rel='stylesheet prefetch' href="{% static 'style.css' %}">
+    <link rel="icon" href="{% static 'images/chatlogo.png' %}" type="image/x-icon">
+    <title>Profile: {{ user.username }}</title>
+</head>
+<body class="form-body">
+
+    {% if message %}
+        {{message}}
+        <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                alert("{{message}}");
+            })
+        </script>
+    {% endif %}
+
+    <div class="form-div">
+        <div class="form-header">
+            <img class="form-header-image" id="letter-avatar" src="{{ user.avatar }}">
+            <h2 class="form-header-title">{{user.username}}</h2>
+        </div>
+        <div>
+            <h4 id="status-display">"{{user.status}}"</h4>
+            {% if user.gender == 'M' %}
+                <p><b>Gender:</b> Male</p>
+            {% elif user.gender == 'F' %}
+                <p><b>Gender:</b> Female</p>
+            {% else %}
+                <p><b>Gender:</b> Other</p>
+            {% endif %}
+            <p><b>Age:</b> {{user.age}}</p>
+            <p><b>Date Of Birth:</b> {{user.dob}}</p>
+            <p><b>Email:</b> {{user.email}}</p>
+
+            <button class="form-field form-button" value="back" onclick="location.href='/';">Back</button>
+            <br>
+
+            {% if logged_user.username == user.username %}
+                <button class="form-field form-button" value="edit" onclick="location.href='/edit';">Edit Profile</button>
+            {% endif %}
+
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+{% load static %}
+<!-- chat/templates/chat/login.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <link rel='stylesheet prefetch' href="{% static 'style.css' %}">
+    <link rel="icon" href="{% static 'images/chatlogo.png' %}" type="image/x-icon">
+    <title>Login</title>
+</head>
+<body class="form-body">
+
+    {% if message %}
+        <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                alert("{{message}}");
+            })
+        </script>
+    {% endif %}
+    
+    <div class="form-div">
+        <div class="form-header">
+            <img class="form-header-image" src="{% static 'images/chatlogo.png' %}">
+            <h2 class="form-header-title">Chaticon</h2>
+        </div>
+        <form action="{% url 'chat:login' %}" method="post">
+            {% csrf_token %}
+            <input class="form-field form-input" autofocus name="username" placeholder="Username" required>
+            <br>
+            <input class="form-field form-input" type="password" name="password" placeholder="Password" required>
+            <br>
+            <input class="form-field form-button" type="submit" value="Login">
+            <p class="form-text">Don't have an account? <a class="form-text" href="{% url 'chat:register' %}"><br>Register here.</a></p>
+        </form>
+    </div>
+
+</body>
+</html>

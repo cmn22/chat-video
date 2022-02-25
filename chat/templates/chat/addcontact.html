@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <link rel='stylesheet prefetch' href="{% static 'style.css' %}">
+    <link rel="icon" href="{% static 'images/chatlogo.png' %}" type="image/x-icon">
+    <title>Add Contact</title>
+</head>
+<body class="form-body">
+
+    {% if allcontacts == "No Users Available" %}
+        <h3>No Users Available<h3>
+        <button class="form-button" id="goback" onclick="location.href='/';">Go Back</button>
+    {% else %}
+        <div class="form-div">
+            {% for contact in allcontacts %}
+                <label class="checkbox-container">{{ contact.username }}
+                    <input class="form-field" type="checkbox" name="new_contact" value="{{ contact.username }}">
+                    <span class="checkmark"></span>
+                </label>
+            {% endfor %}
+            <br>
+            <button class="addcontact-page-button form-button" id="add_contacts">Add Contacts</button>
+            <button class="addcontact-page-button form-button" id="goback" onclick="location.href='/';">Back</button>
+        </div>
+
+    {% endif %}
+
+    <script>
+
+        var newContacts = []
+
+        function getSelectedContacts(){
+            var checkedboxes = document.querySelectorAll('input[type=checkbox]:checked');
+            for (var i = 0; i < checkedboxes.length; i++) {
+                newContacts.push(checkedboxes[i].value);
+            }
+        }
+
+        function addContacts(){
+            fetch('/addcontact/', {
+                method: 'POST',
+                body: JSON.stringify({
+                    newcontacts: newContacts
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                // Print result
+                console.log(result);
+
+                if (result.message == "No Contacts Added."){
+                    alert("No Contacts Selected.");
+                }
+                else{
+                    alert(result.message);
+                    window.location.replace("/");
+                }
+            })
+            .catch(error => {
+                console.log(error);
+                alert(`Error: ${error}`);
+            });
+
+        }
+
+        // On clicking "Add Contacts" button
+        document.querySelector('#add_contacts').addEventListener('click', (event) => {
+            getSelectedContacts();
+            addContacts();
+        });
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,161 @@
+{% load static %}
+<!-- chat/templates/chat/register.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <link rel='stylesheet prefetch' href="{% static 'style.css' %}">
+    <link rel="icon" href="{% static 'images/chatlogo.png' %}" type="image/x-icon">
+    <title>Register</title>
+</head>
+<body class="form-body">
+
+    {% if message %}
+        {{message}}
+        <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                alert("{{message}}");
+            })
+        </script>
+    {% endif %}
+
+    <div class="form-div">
+        <div class="form-header">
+            <img class="form-header-image" id="letter-avatar" src="{% static 'images/chatlogo.png' %}">
+            <h2 class="form-header-title">Chaticon</h2>
+        </div>
+        <form id="registration-form" onsubmit="event.preventDefault(); validateForm();" action="{% url 'chat:register' %}" method="post">
+            {% csrf_token %}
+            <input autofocus class="form-field form-input" name="username" placeholder="Username" required>
+            <br>
+            <input class="form-field form-input" type="email" name="email" placeholder="Email Address" required>
+            <br>
+
+            <input class="form-field form-input avatar" type="text" id="abbreviation" name="abbreviation" maxlength="3" style="text-transform:uppercase" placeholder="Abbrevation">
+            <br>
+            <input type="color" class="avatar" id="backgroundcolor" name="backgroundcolor" value="#000000">
+            <input type="color" class="avatar" id="foregroundcolor" name="foregroundcolor" value="#ffffff"><br>
+            <input type="text" id="avatar-link" name="avatar-link" hidden>
+            <br>
+
+            <div class="select-wrap form-field">
+                <label>Gender</label>
+                <select id="gender" name="gender" style="width: 100%;">
+                  <option value="" disabled selected>---</option>
+                  <option value="M">Male</option>
+                  <option value="F">Female</option>
+                  <option value="O">Other</option>
+                </select>
+            </div>
+
+            <label for="dob">Date Of Birth</label>
+            <input class="form-field" type="date" id="dob" name="dob" required>
+            <br>
+
+            <input class="form-field form-input" type="number" id="age" name="age" placeholder="Age" required>
+            <br>
+
+            <input class="form-field form-input" type="text" id="status" name="status" placeholder="Status">
+            <br>
+
+            <input class="form-field form-input" type="password" name="password" placeholder="Password" required>
+            <br>
+            <input class="form-field form-input" type="password" name="confirmation" placeholder="Confirm Password" required>
+            <br>
+
+            <input class="form-field form-button" type="submit" value="Register">
+
+            <p class="form-text">Already have an account? <a class="form-text" href="{% url 'chat:login' %}"><br>Log In here.</a></p>
+        </form>
+    </div>
+
+    <script>
+        function containsSpecialChars(str) {
+                const specialChars = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+                return specialChars.test(str);
+        }
+
+        function validateForm(){
+            if (document.querySelector("#gender").value == ""){
+                alert("Please select a gender");
+                return False
+            }
+            else if (document.querySelector("#age").value < 16){
+                alert("You must be atleast 16 years of age to use this platform");
+                return False
+            }
+            else if (document.querySelector("#age").value > 100){
+                alert("Invalid Age");
+                return False
+            }
+            else if (containsSpecialChars(document.querySelector("#username").value)) {
+                alert("Username cannot contain symbol or space");
+            }
+            else if(document.querySelector("#username").value.length < 3){
+                alert("Username must be minimum 3 charaters");
+            }
+            else if(document.querySelector("#username").value.length > 11){
+                alert("Username can be maximum 10 charaters");
+            }
+            else if(document.querySelector("#password").value.length < 7){
+                alert("Length of password must be between 8 and 16 characters");
+            }
+            else if(document.querySelector("#password").value.length > 17){
+                alert("Length of password must be between 8 and 16 characters");
+            }
+            else if(document.querySelector("#password").value != document.querySelector("#confirmation").value){
+                alert("Passwords don't match");
+            }
+            else{
+                document.querySelector("#registration-form").submit();
+                return True
+            }
+        }
+
+        // function validateForm(){
+        //     if (document.querySelector("#gender").value == ""){
+        //         alert("Please select a gender.");
+        //         return False
+        //     }
+        //     else if (document.querySelector("#age").value < 16){
+        //         alert("You must be atleast 16 years of age to use this platform");
+        //         return False
+        //     }
+        //     else if (document.querySelector("#age").value > 100){
+        //         alert("Invalid Age");
+        //         return False
+        //     }
+        //     else{
+        //         document.querySelector("#registration-form").submit();
+        //         return True
+        //     }
+        // }
+    </script>
+
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const avatars = document.querySelectorAll('.avatar');
+            for (const avatar of avatars){
+                avatar.addEventListener('change', (event) => {
+
+                    var abbreviation = document.querySelector('#abbreviation').value;
+                    abbreviation = abbreviation.toUpperCase();
+                    var len = abbreviation.length;
+
+                    var backgroundcolor = document.querySelector('#backgroundcolor').value;
+                    backgroundcolor = backgroundcolor.replace("#","");
+
+                    var foregroundcolor = document.querySelector('#foregroundcolor').value;
+                    foregroundcolor = foregroundcolor.replace("#","");
+
+                    var link = `https://ui-avatars.com/api/?name=${abbreviation}&background=${backgroundcolor}&color=${foregroundcolor}&length=${len}&rounded=true`;
+                    document.querySelector("#letter-avatar").setAttribute("src", link)
+                    document.querySelector("#avatar-link").value = link
+
+                });
+            }
+        })
+    </script>
+
+</body>
+</html>

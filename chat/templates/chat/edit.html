@@ -1,0 +1,111 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <link rel='stylesheet prefetch' href="{% static 'style.css' %}">
+    <link rel="icon" href="{% static 'images/chatlogo.png' %}" type="image/x-icon">
+    <title>Edit Profile</title>
+</head>
+<body class="form-body">
+
+    {% if message %}
+        <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                alert("{{message}}");
+            })
+        </script>
+    {% endif %}
+
+    <div class="form-div">
+        <div class="form-header">
+            <img class="form-header-image" id="letter-avatar" src="{{ user.avatar }}">
+            <h2 class="form-header-title">{{user.username}}</h2>
+        </div>
+        <form id="registration-form" action="{% url 'chat:edit' %}" method="post">
+            {% csrf_token %}
+            <input class="form-field form-input" type="email" name="email" placeholder="{{user.email}}" value="{{user.email}}" required>
+            <br>
+
+            <input class="form-field form-input avatar" type="text" id="abbreviation" name="abbreviation" maxlength="3" style="text-transform:uppercase" placeholder="{{user.avatar}}">
+            <br>
+            <!-- <label for="backgroundcolor">Background Colour:</label> -->
+            <input type="color" class="avatar" id="backgroundcolor" name="backgroundcolor" value="#ffffff">
+            <!-- <br> -->
+            <!-- <label for="foregroundcolor">Foreground Colour:</label> -->
+            <input type="color" class="avatar" id="foregroundcolor" name="foregroundcolor" value="#ffffff"><br>
+            <!-- <img id="letter-avatar" src=""> -->
+            <input type="text" id="avatar-link" name="avatar-link" value="{{user.avatar}}" hidden>
+            <br>
+
+            <div class="select-wrap form-field">
+                <label>Gender</label>
+                <select id="gender" name="gender" style="width: 100%;">
+                {% if user.gender == 'M' %}
+                    <option value="M" selected>Male</option>
+                    <option value="F">Female</option>
+                    <option value="O">Other</option>
+                {% elif user.gender == 'F' %}
+                    <option value="M">Male</option>
+                    <option value="F" selected>Female</option>
+                    <option value="O">Other</option>
+                {% else %}
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
+                    <option value="O" selected>Other</option>
+                {% endif %}
+                </select>
+            </div>
+
+            <input class="form-field form-input" type="number" id="age" name="age" placeholder="Age: {{user.age}}" value="{{user.age}}" required>
+            <br>
+
+            <input class="form-field form-input" type="text" id="status" name="status" placeholder="Status: {{user.status}}" value="{{user.status}}">
+            <br>
+
+            <input class="form-field form-input" id="password" type="password" name="password" placeholder="New Password">
+            <br>
+            <input class="form-field form-input" id="confirmation" type="password" name="confirmation" placeholder="Confirm New Password">
+            <br>
+            <input class="form-field form-button" type="submit" value="Save">
+        </form>
+        <br>
+        <button class="form-field form-button" value="Cancel" onclick="location.href='/';">Cancel</button>
+    </div>
+
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const avatar_link = document.querySelector('#abbreviation').getAttribute('placeholder')
+            const abbreviation = avatar_link.substring(avatar_link.indexOf("name")+5, avatar_link.indexOf("&background"))
+            const backgroundcolor = avatar_link.substring(avatar_link.indexOf("background=")+11, avatar_link.indexOf("&color"))
+            const foregroundcolor = avatar_link.substring(avatar_link.indexOf("color=")+6, avatar_link.indexOf("&length"))
+
+            document.querySelector('#abbreviation').setAttribute('value', abbreviation)
+            document.querySelector('#backgroundcolor').setAttribute('value', `#${backgroundcolor}`)
+            document.querySelector('#foregroundcolor').setAttribute('value', `#${foregroundcolor}`)
+
+            const avatars = document.querySelectorAll('.avatar');
+            for (const avatar of avatars){
+                avatar.addEventListener('change', (event) => {
+
+                    var abbreviation = document.querySelector('#abbreviation').value;
+                    abbreviation = abbreviation.toUpperCase();
+                    var len = abbreviation.length;
+
+                    var backgroundcolor = document.querySelector('#backgroundcolor').value;
+                    backgroundcolor = backgroundcolor.replace("#","");
+
+                    var foregroundcolor = document.querySelector('#foregroundcolor').value;
+                    foregroundcolor = foregroundcolor.replace("#","");
+
+                    var link = `https://ui-avatars.com/api/?name=${abbreviation}&background=${backgroundcolor}&color=${foregroundcolor}&length=${len}&rounded=true`;
+                    document.querySelector("#letter-avatar").setAttribute("src", link)
+                    document.querySelector("#avatar-link").value = link
+
+                });
+            }
+        })
+    </script>
+
+</body>
+</html>

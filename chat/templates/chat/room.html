@@ -1,0 +1,552 @@
+{% load static %}
+
+<!DOCTYPE html><html class=''>
+
+<head>
+
+<title>Chaticon</title>
+
+<link rel='stylesheet prefetch' href="{% static 'style.css' %}">
+
+<script src='//production-assets.codepen.io/assets/editor/live/console_runner-079c09a0e3b9ff743e39ee2d5637b9216b3545af0de366d4b9aad9dc87e26bfd.js'></script>
+<script src='//production-assets.codepen.io/assets/editor/live/events_runner-73716630c22bbc8cff4bd0f07b135f00a0bdc5d14629260c3ec49e5606f98fdd.js'></script>
+<script src='//production-assets.codepen.io/assets/editor/live/css_live_reload_init-2c0dc5167d60a5af3ee189d570b1835129687ea2a61bee3513dee3a50c115a77.js'></script>
+<meta charset='UTF-8'><meta name="robots" content="noindex"><link rel="shortcut icon" type="image/x-icon" href="//production-assets.codepen.io/assets/favicon/favicon-8ea04875e70c4b0bb41da869e81236e54394d63638a1ef12fa558a4a835f1164.ico" />
+<link rel="mask-icon" type="" href="//production-assets.codepen.io/assets/favicon/logo-pin-f2d2b6d2c61838f7e76325261b7195c27224080bc099486ddd6dccb469b8e8e6.svg" color="#111" />
+<link rel="canonical" href="https://codepen.io/emilcarlsson/pen/ZOQZaV?limit=all&page=74&q=contact+" />
+<link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,700,300' rel='stylesheet' type='text/css'>
+
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+
+<script src="https://use.typekit.net/hoy3lrg.js"></script>
+<script>try{Typekit.load({ async: true });}catch(e){}</script>
+<link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css'><link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.2/css/font-awesome.min.css'>
+<link rel="icon" href="{% static 'images/chatlogo.png' %}" type="image/x-icon">
+
+</head>
+
+<body>
+<div id="frame">
+
+	<div id="sidepanel">
+
+		<div id="profile" onclick="location.href='/profile/{{user.username}}';" style="cursor:pointer;">
+			<div class="wrap">
+				<img id="profile-img" src="{{ user.avatar }}" class="online" alt="" />
+				<p class="contact-name">{{ user.username }}</p>
+			</div>
+		</div>
+
+		<div id="search">
+			<label for=""><i class="fa fa-search" aria-hidden="true"></i></label>
+			<input id="searchContacts" type="text" placeholder="Search contacts..." />
+		</div>
+
+		<div id="contacts">
+			<ul id="contactList">
+
+				{% for contact in contacts %}
+					<li class="contact" value="{{ contact.user2 }}" avatar="{{ contact.user2.avatar }}">
+						<div class="wrap">
+							<img class="contact-avatar" src="{{ contact.user2.avatar }}" alt="" />
+							<div class="meta">
+								<p class="name">{{ contact.user2.username }}</p>
+								<p class="preview">{{ contact.user2.last_login }}</p>
+							</div>
+						</div>
+					</li>
+				{% endfor %}
+
+			</ul>
+		</div>
+
+		<div id="bottom-bar">
+			<button id="addcontact" onclick="location.href='addcontact/';"><i class="fa fa-user-plus fa-fw" aria-hidden="true"></i> <span>Add contact</span></button>
+			<button id="logout" onclick="window.location.href='/logout'"><i class="fa fa-sign-out fa-fw" aria-hidden="true"></i> <span>Logout</span></button>
+		</div>
+
+	</div>
+
+	<div class="content" id="content-home">
+		<div id="content-home-box">
+			<img id="content-home-box-image" src="{% static 'images/chatlogo.png' %}">
+			<h2>Chaticon</h2>
+		</div>
+	</div>
+
+	<div class="content" id="content-chat">
+
+		<button class="submit" id="startVideoCall" onclick="call()"><i class="fa fa-paper-plane" aria-hidden="true"></i></button>
+		<video id="localVideo" autoplay="true"></video>
+		<video id="remoteVideo" autoplay="true"></video>
+		
+		<div class="contact-profile" onclick="location.href='#';" style="cursor:pointer;">
+			<img id="contact-profile-avatar" src="" alt="" />
+			<p class="contact-name" id="selected-contact-name" style="font-size: 25px;"></p>
+		</div>
+
+		<div class="messages">
+			<ul id="chat-log">
+
+			</ul>
+		</div>
+
+		<div class="message-input">
+			<div class="wrap">
+			<input type="text" id="chat-message-input" placeholder="Write your message..." />
+			<button class="submit" id="chat-message-submit"><i class="fa fa-paper-plane" aria-hidden="true"></i></button>
+			</div>
+		</div>
+	</div>
+
+</div>
+
+<script src="{% static 'reconnecting-websocket.js' %}"></script>
+
+<!-- JavaScript for handling page executions -->
+<script>
+
+	var selected_contact;
+	var selected_contact_avatar;
+
+	document.addEventListener('DOMContentLoaded', function() {
+		// By default, display home content
+		document.querySelector('#content-home').style.display = 'block';
+		document.querySelector('#content-chat').style.display = 'none';
+
+		const contacts = document.querySelectorAll('.contact');
+		for (const contact of contacts){
+			contact.addEventListener('click', () => activeChat(contact))
+		}
+	});
+
+	function activeChat(contact){
+		selected_contact = contact.getAttribute("value");
+		selected_contact_avatar = contact.getAttribute("avatar");
+		profile_link = `/profile/${selected_contact}`
+
+		document.querySelector('#content-home').style.display = 'none';
+		document.querySelector('#content-chat').style.display = 'block';
+
+		document.querySelector(".contact-profile").setAttribute("onclick", "location.href=profile_link")
+		document.querySelector("#selected-contact-name").innerHTML = selected_contact;
+		document.querySelector("#contact-profile-avatar").src = selected_contact_avatar;
+		document.querySelector("#chat-log").innerHTML = "";
+
+		fetchMessages();
+
+	}
+</script>
+
+<!-- JavaScript for Web Socket -->
+<script src="{% static 'websocket.js' %}"></script>
+
+<script>
+	var username = {{ username }};
+
+	let localVideo = document.querySelector('#localVideo');
+	let remoteVideo = document.querySelector('#remoteVideo');
+
+	let remoteRTCMessage;
+
+	let iceCandidatesFromCaller = [];
+	let peerConnection;
+	let remoteStream;
+	let localStream;
+
+	let callInProgress = false;
+
+	var pcConfig = {
+    "iceServers":
+        [
+            { "url": "stun:stun.jap.bloggernepal.com:5349" },
+            {
+                "url": "turn:turn.jap.bloggernepal.com:5349",
+                "username": "guest",
+                "credential": "somepassword"
+            },
+            // { "url": "stun:3.108.252.112" },
+            // {
+            //     "url": "turn:3.108.252.112",
+            //     "username": "cmn",
+            //     "credential": "cmn"
+            // },
+            {"url": "stun:stun.l.google.com:19302"}
+        ]
+	};
+
+	// Set up audio and video regardless of what devices are present.
+	let sdpConstraints = {
+		offerToReceiveAudio: true,
+		offerToReceiveVideo: true
+	};
+
+
+    var chatSocket = new ReconnectingWebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/'
+	);
+
+	chatSocket.onmessage = function(e){
+		var data = JSON.parse(e.data);
+		alert("onmessage : \nData="+data)
+
+		if (data['command'] === 'messages'){
+			// alert("onmessage -> command=messages");
+			for (let i=0; i<data['messages'].length; i++){
+				createMessage(data['messages'][i]);
+			}
+		}
+		else if (data['command'] === 'new_message'){
+			createMessage(data['message']);
+		}
+		else if(data['command'] == 'call_received'){
+            alert("on message: Call Received");
+            onNewCall(data.data)
+        }
+		else if(data['command'] == 'call_answered'){
+            alert("on message: Call Answered");
+            onCallAnswered(data.data)
+        }
+		else if(data['command'] == 'ICEcandidate'){
+            alert("on message: ICECandidate");
+            onICECandidate(data.data)
+        }
+	};
+
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    document.querySelector('#chat-message-input').onkeyup = function(e) {
+        if (e.keyCode === 13) {  // enter, return
+            document.querySelector('#chat-message-submit').click();
+        }
+    };
+
+    document.querySelector('#chat-message-submit').onclick = function(e) {
+        var messageInputDom = document.querySelector('#chat-message-input');
+		var message = messageInputDom.value;
+        chatSocket.send(JSON.stringify({
+			'command': 'new_message',
+			'message': message,
+			'sender': username,
+			'receiver': selected_contact
+		}));
+		messageInputDom.value = '';
+	};
+
+	function fetchMessages(){
+		chatSocket.send(JSON.stringify({
+			'command': 'fetch_messages'
+		}));
+	}
+
+	function createMessage(data){
+		var sender = data['sender'];
+		var receiver = data['receiver']
+
+		if (((sender==username)||(sender==selected_contact)) && ((receiver==username)||(receiver==selected_contact))){
+			var msgListTag = document.createElement('li');
+			var imgTag = document.createElement('img');
+			var pTag = document.createElement('p');
+			pTag.textContent = data.message;
+			if (sender == username){
+				msgListTag.className = 'sent';
+				var userAvatar = "{{ user.avatar }}";
+				// To remove added amp; which is done automatically by URLAction
+				userAvatar = userAvatar.replaceAll("&amp;", "&");
+				imgTag.src = userAvatar;
+			}
+			else{
+				msgListTag.className = 'replies';
+				imgTag.src = selected_contact_avatar;
+			}
+			msgListTag.appendChild(imgTag);
+			msgListTag.appendChild(pTag);
+			document.querySelector('#chat-log').appendChild(msgListTag);
+
+			// To scroll to the bottom of the page when a message is created
+			const message_div = document.querySelector('.messages')
+			message_div.scrollTop = message_div.scrollHeight
+		}
+    };
+
+	const onNewCall = (data) =>{
+		alert("const -> onNewCall(data) :data.caller()="+data.caller)
+        //when other called you
+        //show answer button
+
+        otherUser = data.caller;
+        remoteRTCMessage = data.rtcMessage
+
+        // document.getElementById("profileImageA").src = baseURL + callerProfile.image;
+        // document.getElementById("callerName").innerHTML = otherUser;
+        // document.getElementById("call").style.display = "none";
+        // document.getElementById("answer").style.display = "block";
+    }
+
+	const onCallAnswered = (data) =>{
+        //when other accept our call
+		alert("const -> onCallAnswered()")
+        remoteRTCMessage = data.rtcMessage
+        peerConnection.setRemoteDescription(new RTCSessionDescription(remoteRTCMessage));
+        document.getElementById("calling").style.display = "none";
+        console.log("Call Started. They Answered");
+        // console.log(pc);
+        callProgress()
+    }
+
+	const onICECandidate = (data) =>{
+        alert("const -> onICECandidate")
+		// console.log(data);
+        // console.log("GOT ICE candidate");
+
+        let message = data.rtcMessage
+
+        let candidate = new RTCIceCandidate({
+            sdpMLineIndex: message.label,
+            candidate: message.candidate
+        });
+
+        if (peerConnection) {
+            console.log("ICE candidate Added");
+            peerConnection.addIceCandidate(candidate);
+        } else {
+            console.log("ICE candidate Pushed");
+            iceCandidatesFromCaller.push(candidate);
+        }
+
+    }
+
+	function call(){
+		alert("call()");
+		beReady()
+		.then(bool => {
+			processCall(selected_contact);
+		})
+	}
+
+	function answer() {
+		alert("answer()")
+		//do the event firing
+		beReady()
+			.then(bool => {
+				processAccept();
+			})
+		document.getElementById("answer").style.display = "none";
+	}
+
+	function beReady() {
+		alert("beReady()");
+		return navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: true
+    })
+        .then(stream => {
+            localStream = stream;
+            localVideo.srcObject = stream;
+            return createConnectionAndAddStream()
+        })
+        .catch(function (e) {
+            alert('getUserMedia() error: ' + e.name);
+        });
+	}
+
+	function createConnectionAndAddStream() {
+		alert("createConnectionAndAddStream()");
+		createPeerConnection();
+		peerConnection.addStream(localStream);
+		return true;
+	}
+
+	function createPeerConnection() {
+		try {
+			alert("createPeerConnection() :start")
+			peerConnection = new RTCPeerConnection(pcConfig);
+			// peerConnection = new RTCPeerConnection();
+			peerConnection.onicecandidate = handleIceCandidate;
+			peerConnection.onaddstream = handleRemoteStreamAdded;
+			peerConnection.onremovestream = handleRemoteStreamRemoved;
+			// console.log('Created RTCPeerConnnection');
+			alert("createPeerConnection() :Created RTCPeerConnnection")
+			return;
+		} catch (e) {
+			// console.log('Failed to create PeerConnection, exception: ' + e.message);
+			alert('Cannot create RTCPeerConnection object.');
+			return;
+		}
+	}
+
+	function processCall(selected_contact) {
+		alert("processCall()")
+		peerConnection.createOffer((sessionDescription) => {
+			peerConnection.setLocalDescription(sessionDescription);
+			alert("processCall() is calling sendCall() with sessionDescription="+sessionDescription)
+			sendCall({
+				name: selected_contact,
+				rtcMessage: sessionDescription
+			})
+		}, (error) => {
+			console.log("Error");
+		});
+	}
+
+	function processAccept() {
+		alert("processAccept")
+		peerConnection.setRemoteDescription(new RTCSessionDescription(remoteRTCMessage));
+		peerConnection.createAnswer((sessionDescription) => {
+			peerConnection.setLocalDescription(sessionDescription);
+
+			if (iceCandidatesFromCaller.length > 0) {
+				//I am having issues with call not being processed in real world (internet, not local)
+				//so I will push iceCandidates I received after the call arrived, push it and, once we accept
+				//add it as ice candidate
+				//if the offer rtc message contains all thes ICE candidates we can ingore this.
+				for (let i = 0; i < iceCandidatesFromCaller.length; i++) {
+					//
+					let candidate = iceCandidatesFromCaller[i];
+					console.log("ICE candidate Added From queue");
+					try {
+						peerConnection.addIceCandidate(candidate).then(done => {
+							console.log(done);
+						}).catch(error => {
+							console.log(error);
+						})
+					} catch (error) {
+						console.log(error);
+					}
+				}
+				iceCandidatesFromCaller = [];
+				console.log("ICE candidate queue cleared");
+			} else {
+				console.log("NO Ice candidate in queue");
+			}
+
+			answerCall({
+				caller: otherUser,
+				rtcMessage: sessionDescription
+			})
+
+		}, (error) => {
+			console.log("Error");
+		})
+	}
+
+	function callProgress() {
+		alert("callProgress()")
+		document.getElementById("videos").style.display = "block";
+		document.getElementById("otherUserNameC").innerHTML = otherUser;
+		document.getElementById("inCall").style.display = "block";
+		callInProgress = true;
+	}
+
+	function handleIceCandidate(event) {
+		// alert("handleIceCandidate(event)\nevent="+event)
+		if (event.candidate) {
+			console.log("Local ICE candidate");
+			// alert("handleIceCandidate(event) :SendingICEcandidate\nuser="+selected_contact+"\nlabel="+event.candidate.sdpMLineIndex+"\nid="+event.candidate.sdpMid+"\ncandidate="+event.candidate.candidate)
+			sendICEcandidate({
+				user: selected_contact,
+				rtcMessage: {
+					label: event.candidate.sdpMLineIndex,
+					id: event.candidate.sdpMid,
+					candidate: event.candidate.candidate
+				}
+			})
+		} else {
+			console.log('End of candidates.');
+		}
+	}
+
+	function sendICEcandidate(data) {
+		//send only if we have caller, else no need to
+		alert("sendICEcandidate(data) :Sending ICE candidate to servers");
+		// socket.emit("ICEcandidate", data)
+		chatSocket.send(JSON.stringify({
+			command: 'ICEcandidate',
+			data
+		}));
+
+	}
+
+	function handleRemoteStreamAdded(event) {
+		alert("handleRemoteStreamAdded(event) :Remote stream added.\nEvent=", event);
+		remoteStream = event.stream;
+		remoteVideo.srcObject = remoteStream;
+	}
+
+	function handleRemoteStreamRemoved(event) {
+		alert('handleRemoteStreamRemoved :Remote stream removed. \nEvent=', event);
+		remoteVideo.srcObject = null;
+		localVideo.srcObject = null;
+	}
+
+	window.onbeforeunload = function () {
+		if (callInProgress) {
+			stop();
+		}
+	};
+
+
+	/**
+	 *
+	 * @param {Object} data
+	 * @param {number} data.name - the name of the user to call
+	 * @param {Object} data.rtcMessage - the rtc create offer object
+	 */
+	function sendCall(data) {
+		//to send a call
+		alert("sendCall(data) :Data="+data);
+		chatSocket.send(JSON.stringify({
+			command: 'call',
+			data
+		}));
+		// document.getElementById("call").style.display = "none";
+		// // document.getElementById("profileImageCA").src = baseURL + otherUserProfile.image;
+		// document.getElementById("otherUserNameCA").innerHTML = otherUser;
+		// document.getElementById("calling").style.display = "block";
+	}
+
+	/**
+	 *
+	 * @param {Object} data
+	 * @param {number} data.caller - the caller name
+	 * @param {Object} data.rtcMessage - answer rtc sessionDescription object
+	 */
+	function answerCall(data) {
+		//to answer a call
+		alert("answerCall(data) :Data="+data);
+		// socket.emit("answerCall", data);
+		chatSocket.send(JSON.stringify({
+			command: 'answer_call',
+			data
+		}));
+		callProgress();
+	}
+
+</script>
+
+<!-- JQuery for Sidebar Search -->
+<script>
+	$(document).ready(function(){
+
+		// Search Contacts in Sidebar
+		$("#searchContacts").on("keyup", function() {
+			var value = $(this).val().toLowerCase();
+			$("#contactList *").filter(function() {
+			$(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+			});
+		});
+	});
+</script>
+
+</body>
+</html>
